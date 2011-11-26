@@ -41,7 +41,7 @@ class Command(AppCommand):
         "Creates a new SSH key"
         returncode = subprocess.call(
             ["ssh-keygen", "-t", "rsa", "-f", SSH_IDENT,
-             '-C', getpass.getuser() + "@" + platform.node(), ""],
+             '-C', getpass.getuser() + "@" + platform.node()],
             stdout = subprocess.PIPE,
         )
         if returncode:
