@@ -1,1 +1,2 @@
 include epio/skeleton/epio.ini
+include epio/ssl/StartCom_CA.pem

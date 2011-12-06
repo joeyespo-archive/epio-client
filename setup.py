@@ -4,7 +4,7 @@
 from setuptools import setup
 from epio import __version__
 
-requires = ['httplib2<=0.6.0']
+requires = ['httplib2']
 
 try:
     import json
@@ -20,7 +20,7 @@ setup(
     url='http://www.ep.io/',
     packages = ['epio', 'epio.commands'],
     package_data = {
-        'epio': ["skeleton/epio.ini"],
+        'epio': ["skeleton/epio.ini", "ssl/StartCom_CA.pem"],
     },
     include_package_data=True,
     install_requires = requires,
