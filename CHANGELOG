@@ -1,3 +1,10 @@
+0.3
+---
+
+ * Fix SSL support to work with newer httplib2
+ * Fix "epio upload" and git submodules
+   (both thanks to Carl Meyer)
+
 0.2.17
 ------
 
