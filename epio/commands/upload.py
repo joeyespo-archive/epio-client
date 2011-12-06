@@ -26,10 +26,10 @@ class Command(AppNameCommand):
                 stdout=subprocess.PIPE,
                 cwd = os.getcwd(),
             ).communicate()
-            # Remove any old git repo
+            # Remove any old git repos (including submodules)
             env = dict(os.environ)
             subprocess.Popen(
-                ["rm", "-rf", ".git"],
+                ["find", ".", "-depth", "-name", ".git", "-execdir", "rm", "-rf", "{}", "+"],
                 env=env,
                 stdout=subprocess.PIPE,
                 cwd=repo_dir,
@@ -49,9 +49,9 @@ class Command(AppNameCommand):
                 fh.write(fh2.read())
                 fh2.close()
             fh.close()
-            # Remove any gitignore file
+            # Remove any gitignore files
             subprocess.Popen(
-                ["rm", "-f", ".gitignore"],
+                ["find", ".", "-name", ".gitignore", "-delete"],
                 env=env,
                 stdout=subprocess.PIPE,
                 cwd=repo_dir,
