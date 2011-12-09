@@ -42,10 +42,18 @@ class EpioClient(object):
                 host = netloc
                 port = 80
             proxy_info = httplib2.ProxyInfo(3, host, port)
-        self.http_client = httplib2.Http(
-            proxy_info=proxy_info,
-            ca_certs=os.path.join(
-                os.path.dirname(__file__), "ssl", "StartCom_CA.pem"))
+        try:
+            self.http_client = httplib2.Http(
+                proxy_info=proxy_info,
+                ca_certs=os.path.join(
+                    os.path.dirname(__file__), "ssl", "StartCom_CA.pem"
+                ),
+            )
+        except TypeError:
+            # Older httplib versions
+            self.http_client = httplib2.Http(
+                proxy_info=proxy_info,
+            )
         self.access_token = None
         try:
             self.access_token = self.read_token_file()
