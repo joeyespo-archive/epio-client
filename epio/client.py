@@ -41,7 +41,7 @@ class EpioClient(object):
             else:
                 host = netloc
                 port = 80
-            proxy_info = httplib2.ProxyInfo(3, host, port)
+            proxy_info = httplib2.ProxyInfo(3, host, int(port))
         try:
             self.http_client = httplib2.Http(
                 proxy_info=proxy_info,
