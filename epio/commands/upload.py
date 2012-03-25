@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 import platform
+import shutil
 from epio.commands import AppNameCommand, CommandError
 
 class Command(AppNameCommand):
@@ -16,24 +17,19 @@ class Command(AppNameCommand):
         
         print "Uploading %s as app %s" % (os.path.abspath("."), app)
         # Make a temporary git repo, commit the current directory to it, and push
-        repo_dir = tempfile.mkdtemp(prefix="epio-upload-")
+        temp_dir = tempfile.mkdtemp(prefix="epio-upload-")
         if 'Windows' in platform.platform() and not os.environ.has_key('HOME'):
             os.environ['HOME'] = os.environ['USERPROFILE'] #failsafe HOME
         try:
             # Copy the files across
-            subprocess.Popen(
-                ["cp", "-R", ".", repo_dir],
-                stdout=subprocess.PIPE,
-                cwd = os.getcwd(),
-            ).communicate()
+            repo_dir = os.path.join(temp_dir, 'repo')
+            shutil.copytree('.', repo_dir)
             # Remove any old git repos (including submodules)
             env = dict(os.environ)
-            subprocess.Popen(
-                ["find", ".", "-depth", "-name", ".git", "-execdir", "rm", "-rf", "{}", "+"],
-                env=env,
-                stdout=subprocess.PIPE,
-                cwd=repo_dir,
-            ).communicate()
+            for search_dir in os.walk(repo_dir, topdown=False):
+                dirpath, dirnames, filenames = search_dir
+                if os.path.basename(dirpath) == '.git':
+                    shutil.rmtree(dirpath, ignore_errors=True)
             # Init the git repo
             subprocess.Popen(
                 ["git", "init"],
@@ -50,12 +46,10 @@ class Command(AppNameCommand):
                 fh2.close()
             fh.close()
             # Remove any gitignore files
-            subprocess.Popen(
-                ["find", ".", "-name", ".gitignore", "-delete"],
-                env=env,
-                stdout=subprocess.PIPE,
-                cwd=repo_dir,
-            ).communicate()
+            for search_dir in os.walk(repo_dir, topdown=False):
+                dirpath, dirnames, filenames = search_dir
+                if '.gitignore' in filenames:
+                    os.remove(os.path.join(dirpath, '.gitignore'))
             # Set configuration options
             fh = open(os.path.join(repo_dir, ".git/config"), "w")
             fh.write("[core]\nautocrlf = false\n")
@@ -85,6 +79,4 @@ class Command(AppNameCommand):
             ).communicate()
         finally:
             # Remove the repo
-            subprocess.call(["rm", "-rf", repo_dir])
-
-
+            shutil.rmtree(temp_dir, ignore_errors=True)
