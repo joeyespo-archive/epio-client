@@ -9,16 +9,26 @@ class Command(AppNameCommand):
     help = 'Uploads the current directory as an app.'
     
     def handle_app_name(self, app, **options):
+        is_windows = 'Windows' in platform.platform()
         # Make sure they have git
+        git = None
         try:
             subprocess.call(["git"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            git = "git"
         except OSError:
+            if is_windows:
+                try:
+                    subprocess.call(["git.cmd"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    git = "git.cmd"
+                except OSError:
+                    pass
+        if git is None:
             raise CommandError("You must install git before you can use epio upload.")
         
         print "Uploading %s as app %s" % (os.path.abspath("."), app)
         # Make a temporary git repo, commit the current directory to it, and push
         temp_dir = tempfile.mkdtemp(prefix="epio-upload-")
-        if 'Windows' in platform.platform() and not os.environ.has_key('HOME'):
+        if is_windows and not os.environ.has_key('HOME'):
             os.environ['HOME'] = os.environ['USERPROFILE'] #failsafe HOME
         try:
             # Copy the files across
@@ -32,7 +42,7 @@ class Command(AppNameCommand):
                     shutil.rmtree(dirpath, ignore_errors=True)
             # Init the git repo
             subprocess.Popen(
-                ["git", "init"],
+                [git, "init"],
                 env=env,
                 stdout=subprocess.PIPE,
                 cwd=repo_dir,
@@ -56,21 +66,21 @@ class Command(AppNameCommand):
             fh.close()
             # Add files into git
             subprocess.Popen(
-                ["git", "add", "."],
+                [git, "add", "."],
                 env=env,
                 stdout=subprocess.PIPE,
                 cwd=repo_dir,
             ).communicate()
             # Commit them all
             subprocess.Popen(
-                ["git", "commit", "-a", "-m", "Auto-commit."],
+                [git, "commit", "-a", "-m", "Auto-commit."],
                 env=env,
                 stdout=subprocess.PIPE,
                 cwd=repo_dir,
             ).communicate()
             # Push it
             subprocess.Popen(
-                ["git", "push", "-q", "vcs@%s:%s" % (
+                [git, "push", "-q", "vcs@%s:%s" % (
                     os.environ.get('EPIO_UPLOAD_HOST', os.environ.get('EPIO_HOST', 'upload.ep.io')).split(":")[0],
                     app,
                 ), "master"],
